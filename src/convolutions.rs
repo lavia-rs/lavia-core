@@ -210,9 +210,11 @@ where
 // Separable convolutions are a special case of convolutions where the kernel is separable into multiple 1D kernels.
 // This is can be more efficient than convolving with a single 2D kernel (in particular for large kernels).
 // This is implemented only for 2D and 3D kernels.
-pub fn separable_convolve<A, S1, S2, D>(
+pub fn separable_convolve<A, S1, S2, D, D2>(
     data: &ArrayBase<S1, D>,
-    kernels: &[ArrayBase<S2, D>],
+    kernel_x: &ArrayBase<S2, D2>,
+    kernel_y: &ArrayBase<S2, D2>,
+    kernel_z: Option<&ArrayBase<S2, D2>>,
     execution_mode: &ExecutionMode,
     padding_strategy: &ConvPaddingStrategy<A>,
 ) -> Array<A, D>
@@ -226,20 +228,15 @@ where
         + num_traits::Num
         + std::cmp::PartialOrd,
     D: Dimension,
+    D2: Dimension,
 {
-    assert!(
-        kernels.len() == 2 || kernels.len() == 3,
-        "Kernel length must be 2 or 3"
-    );
-    let intermediate = broadcast_convolve(data, &kernels[0], padding_strategy, execution_mode);
-    let intermediate = broadcast_convolve(&intermediate, &kernels[1], padding_strategy, execution_mode);
-    if kernels.len() == 2 {
-        return intermediate;
+    let result = broadcast_convolve(data, kernel_x, padding_strategy, execution_mode);
+    let result = broadcast_convolve(&result, kernel_y, padding_strategy, execution_mode);
+    match kernel_z {
+        Some(kernel_z) => broadcast_convolve(&result, kernel_z, padding_strategy, execution_mode),
+        None => result,
     }
-
-    broadcast_convolve(&intermediate, &kernels[2], padding_strategy, execution_mode)
 }
-
 
 #[cfg(test)]
 mod tests {
