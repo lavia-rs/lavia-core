@@ -96,6 +96,10 @@ where
 ///
 /// # Examples
 /// ```
+/// use lavia_core::convolutions::{convolve, ConvPaddingStrategy, ExecutionMode};
+/// use ndarray::Array2;
+/// use ndarray_ndimage::PadMode;
+/// 
 /// let data = Array2::from(vec![[0.0, 0.0, 0.0, 0.0, 0.0],
 ///                              [0.0, 0.0, 0.0, 0.0, 0.0],
 ///                              [0.0, 0.0, 1.0, 0.0, 0.0],
@@ -241,6 +245,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ndarray_ndimage::PadMode;
     use ndarray::{Array2, Array3};
 
     #[test]
