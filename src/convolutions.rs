@@ -204,8 +204,7 @@ where
         + std::cmp::PartialOrd,
     D: Dimension,
 {
-    let kernel = extend_kernel(data, kernel);
-    convolve(data, &kernel, padding_strategy, execution_mode)
+    broadcast_convolve(data, kernel, padding_strategy, execution_mode)
 }
 
 // Separable convolutions are a special case of convolutions where the kernel is separable into multiple 1D kernels.
@@ -232,13 +231,13 @@ where
         kernels.len() == 2 || kernels.len() == 3,
         "Kernel length must be 2 or 3"
     );
-    let intermediate = convolve(data, &kernels[0], padding_strategy, execution_mode);
-    let intermediate = convolve(&intermediate, &kernels[1], padding_strategy, execution_mode);
+    let intermediate = broadcast_convolve(data, &kernels[0], padding_strategy, execution_mode);
+    let intermediate = broadcast_convolve(&intermediate, &kernels[1], padding_strategy, execution_mode);
     if kernels.len() == 2 {
         return intermediate;
     }
 
-    convolve(&intermediate, &kernels[2], padding_strategy, execution_mode)
+    broadcast_convolve(&intermediate, &kernels[2], padding_strategy, execution_mode)
 }
 
 
