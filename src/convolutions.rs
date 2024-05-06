@@ -1,13 +1,20 @@
 use ndarray::{self, Array, ArrayBase, Data, Dimension, LinalgScalar, RawDataClone, Zip};
 use ndarray_ndimage::{pad, PadMode};
 
+/// Execution mode for the convolution operation.
 pub enum ExecutionMode {
+    /// Execute the convolution operation in serial.
     Serial,
+    /// Execute the convolution operation in parallel using rayon.
     Parallel,
 }
 
+/// Padding strategy for the convolution operation.
 pub enum ConvPaddingStrategy<T> {
+    /// The output size will be smaller than the input size and no padding will be applied.
     Valid,
+    /// The output size will be the same as the input size and padding will be applied.
+    /// The padding strategy can be specified using the PadMode enum.
     Same(PadMode<T>),
 }
 
@@ -16,13 +23,19 @@ where
     D: Dimension,
     S: Data<Elem = A> + RawDataClone,
 {
-    /*
-    Kernel flip is required to match the convention of convolution.
-    The kernel is flipped along all axes before convolution.
-    Example:
-    Kernel: [[0, 0, 0], [0, 0, 1], [0, 0, 0]]
-    Flipped Kernel: [[0, 0, 0], [1, 0, 0], [0, 0, 0]]
-    */
+    // Kernel flip is required to match the convention of convolution.
+    // The kernel is flipped along all axes before convolution.
+    // Example:
+    // Kernel: 
+    //        [[0, 0, 0], 
+    //         [0, 0, 1], 
+    //         [0, 0, 0]]
+    // 
+    // Flipped Kernel: 
+    //        [[0, 0, 0],
+    //         [1, 0, 0], 
+    //         [0, 0, 0]]
+    
 
     let mut new_kernel = kernel.clone();
     for ax in kernel.axes().into_iter() {
@@ -57,6 +70,20 @@ where
     }
 }
 
+/// Convolve the input data with the kernel using the specified padding strategy and execution mode.
+/// 
+/// # Examples
+/// ```
+/// let data = Array2::from(vec![[0.0, 0.0, 0.0, 0.0, 0.0],
+///                              [0.0, 0.0, 0.0, 0.0, 0.0],
+///                              [0.0, 0.0, 1.0, 0.0, 0.0],
+///                              [0.0, 0.0, 0.0, 0.0, 0.0],
+///                              [0.0, 0.0, 0.0, 0.0, 0.0]]);
+/// let kernel = Array2::from(vec![[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 0.0]]);
+/// 
+/// let result = convolve(&data, &kernel, &ConvPaddingStrategy::Same(PadMode::Symmetric), &ExecutionMode::Serial);
+/// ```
+/// 
 pub fn convolve<A, S1, S2, D>(
     data: &ArrayBase<S1, D>,
     kernel: &ArrayBase<S2, D>,
